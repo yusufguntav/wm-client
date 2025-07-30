@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/yusufguntav/wmclient/models"
+	"github.com/yusufguntav/wm-client/models"
 )
 
 // SendWp sends a WhatsApp message after preview
@@ -21,7 +21,7 @@ func (c *Client) PreviewWp(req models.PreviewWpRequest) (string, error) {
 		return "", err
 	}
 
-	var resp PreviewWpResponse
+	var resp models.PreviewWpResponse
 	if err := json.Unmarshal(respBody, &resp); err != nil {
 		return "", fmt.Errorf("unmarshal error: %w", err)
 	}
