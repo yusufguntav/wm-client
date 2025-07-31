@@ -1,14 +1,14 @@
 package wmclient
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/url"
 
 	"github.com/yusufguntav/wm-client/models"
 )
 
-// GetReports gets multiple reports with filters
-func (c *Client) GetReports(req models.ReportsRequest) ([]byte, error) {
+func (c *Client) GetReports(req models.ReportsRequest) (models.ReportResponse, error) {
 	params := url.Values{}
 	params.Add("start_date", req.StartDate)
 	params.Add("end_date", req.EndDate)
@@ -20,11 +20,21 @@ func (c *Client) GetReports(req models.ReportsRequest) ([]byte, error) {
 	params.Add("count", req.Count)
 
 	endpoint := fmt.Sprintf("/reports/multi?%s", params.Encode())
-	return c.doRequest("GET", endpoint, nil)
+
+	respBody, err := c.doRequest("GET", endpoint, nil)
+	if err != nil {
+		return models.ReportResponse{}, err
+	}
+
+	var result models.ReportResponse
+	if err := json.Unmarshal(respBody, &result); err != nil {
+		return models.ReportResponse{}, fmt.Errorf("unmarshal error: %w", err)
+	}
+
+	return result, nil
 }
 
-// GetReportDetail retrieves a detailed single report
-func (c *Client) GetReportDetail(reportID, source, state, page string) ([]byte, error) {
+func (c *Client) GetReportDetail(reportID, source, state, page string) (models.ReportDetailResponse, error) {
 	params := url.Values{}
 	params.Add("report_id", reportID)
 	params.Add("source", source)
@@ -32,5 +42,15 @@ func (c *Client) GetReportDetail(reportID, source, state, page string) ([]byte, 
 	params.Add("page", page)
 
 	endpoint := fmt.Sprintf("/reports?%s", params.Encode())
-	return c.doRequest("GET", endpoint, nil)
+	respBody, err := c.doRequest("GET", endpoint, nil)
+	if err != nil {
+		return models.ReportDetailResponse{}, err
+	}
+
+	var result models.ReportDetailResponse
+	if err := json.Unmarshal(respBody, &result); err != nil {
+		return models.ReportDetailResponse{}, fmt.Errorf("unmarshal error: %w", err)
+	}
+
+	return result, nil
 }

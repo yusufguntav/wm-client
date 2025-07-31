@@ -7,30 +7,38 @@ import (
 	"github.com/yusufguntav/wm-client/models"
 )
 
-// LoginVerifyCode sends login credentials and returns success or error.
-func (c *Client) LoginVerifyCode(payload models.LoginVerifyCodePayload) error {
+func (c *Client) LoginVerifyCode(payload models.LoginVerifyCodePayload) (models.VerificationData, error) {
 	respBody, err := c.doRequest("POST", "/login/sms", payload)
 	if err != nil {
-		return fmt.Errorf("login verify code error: %w, response: %s", err, respBody)
+		return models.VerificationData{}, fmt.Errorf("login verify code error: %w, response: %s", err, respBody)
 	}
 
-	return nil
+	var verificationResp models.APIResponse[[]models.VerificationData]
+	if err := json.Unmarshal(respBody, &verificationResp); err != nil {
+		return models.VerificationData{}, fmt.Errorf("unmarshal error: %w", err)
+	}
+
+	if len(verificationResp.Data) == 0 {
+		return models.VerificationData{}, fmt.Errorf("no verification data received")
+	}
+
+	return verificationResp.Data[0], nil
 }
 
-// Login completes login using verify code and returns the token.
-func (c *Client) Login(payload models.LoginPayload) (string, error) {
+func (c *Client) Login(payload models.LoginPayload) (models.LoginResponse, error) {
 	respBody, err := c.doRequest("POST", "/login", payload)
 	if err != nil {
-		return "", fmt.Errorf("login error: %w, response: %s", err, respBody)
+		return models.LoginResponse{}, fmt.Errorf("login error: %w, response: %s", err, respBody)
 	}
 
-	var loginResp models.LoginResponse
+	var loginResp models.APIResponse[[]models.LoginResponse]
 	if err := json.Unmarshal(respBody, &loginResp); err != nil {
-		return "", fmt.Errorf("unmarshal error: %w", err)
+		return models.LoginResponse{}, fmt.Errorf("unmarshal error: %w", err)
 	}
 
-	// Token'i client üzerine set et
-	c.Token = loginResp.Token
+	if len(loginResp.Data) == 0 {
+		return models.LoginResponse{}, fmt.Errorf("no login data received")
+	}
 
-	return loginResp.Token, nil
+	return loginResp.Data[0], nil
 }

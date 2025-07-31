@@ -1,36 +1,53 @@
 package wmclient
 
 import (
+	"encoding/json"
 	"fmt"
-	"net/url"
+	"strconv"
+
+	"github.com/yusufguntav/wm-client/models"
 )
 
-// CreateSubuser creates a new subuser
-func (c *Client) CreateSubuser(params url.Values) error {
-	endpoint := fmt.Sprintf("/subuser?%s", params.Encode())
-	_, err := c.doRequest("POST", endpoint, nil)
+func (c *Client) CreateSubuser(req models.CreateSubuser) error {
+	_, err := c.doRequest("POST", "/subuser", req)
 	return err
 }
 
-// GetSubusers fetches all subusers
-func (c *Client) GetSubusers() ([]byte, error) {
-	return c.doRequest("GET", "/subuser", nil)
+func (c *Client) GetSubusers() (models.APIResponse[[]models.SubuserData], error) {
+	respBody, err := c.doRequest("GET", "/subuser", nil)
+	if err != nil {
+		return models.APIResponse[[]models.SubuserData]{}, err
+	}
+
+	var result models.APIResponse[[]models.SubuserData]
+	if err := json.Unmarshal(respBody, &result); err != nil {
+		return models.APIResponse[[]models.SubuserData]{}, fmt.Errorf("unmarshal error: %w", err)
+	}
+
+	return result, nil
 }
 
-// GetSubuserByID fetches a subuser by ID
-func (c *Client) GetSubuserByID(id string) ([]byte, error) {
+func (c *Client) GetSubuserByID(id string) (models.ResponseForSubuser, error) {
 	endpoint := fmt.Sprintf("/subuser/%s", id)
-	return c.doRequest("GET", endpoint, nil)
+	respBody, err := c.doRequest("GET", endpoint, nil)
+	if err != nil {
+		return models.ResponseForSubuser{}, err
+	}
+
+	var result models.ResponseForSubuser
+	if err := json.Unmarshal(respBody, &result); err != nil {
+		return models.ResponseForSubuser{}, fmt.Errorf("unmarshal error: %w", err)
+	}
+
+	return result, nil
 }
 
-// UpdateSubuser updates subuser details by ID
-func (c *Client) UpdateSubuser(id string, params url.Values) error {
-	endpoint := fmt.Sprintf("/subuser/%s?%s", id, params.Encode())
-	_, err := c.doRequest("PUT", endpoint, nil)
+func (c *Client) UpdateSubuser(req models.UpdateSubuser) error {
+	endpoint := fmt.Sprintf("/subuser/%s", strconv.FormatUint(uint64(req.ID), 10))
+	_, err := c.doRequest("PUT", endpoint, req)
 	return err
 }
 
-// DeleteSubuser deletes subuser by ID
 func (c *Client) DeleteSubuser(id string) error {
 	endpoint := fmt.Sprintf("/subuser/%s", id)
 	_, err := c.doRequest("DELETE", endpoint, nil)
