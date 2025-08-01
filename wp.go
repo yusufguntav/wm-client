@@ -34,3 +34,23 @@ func (c *Client) SendWp(req models.SendWpRequest) (models.WpSendResponse, error)
 
 	return resp.Data, nil
 }
+
+func (c *Client) ForceSendWP(req models.PreviewWpRequest) (models.WpSendResponse, error) {
+
+	resp, err := c.SendWpPreview(req)
+
+	if err != nil {
+		return models.WpSendResponse{}, fmt.Errorf("force send wp error: %w", err)
+	}
+
+	respSendWp, err := c.SendWp(models.SendWpRequest{
+		ID: resp.ID,
+	})
+
+	if err != nil {
+		return models.WpSendResponse{}, fmt.Errorf("force send wp error: %w", err)
+	}
+
+	return respSendWp, nil
+
+}
