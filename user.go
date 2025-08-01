@@ -54,7 +54,17 @@ func (c *Client) DeleteSubuser(id string) error {
 	return err
 }
 
-// UserDetail fetches user detail info
-func (c *Client) UserDetail() ([]byte, error) {
-	return c.doRequest("GET", "/user/detail", nil)
+func (c *Client) UserDetail() (models.UserDetailResponse, error) {
+	var response models.APIResponse[models.UserDetailResponse]
+
+	resbody, err := c.doRequest("GET", "/user/detail", nil)
+	if err != nil {
+		return models.UserDetailResponse{}, err
+	}
+
+	if err := json.Unmarshal(resbody, &response); err != nil {
+		return models.UserDetailResponse{}, fmt.Errorf("unmarshal error: %w", err)
+	}
+
+	return response.Data, nil
 }
