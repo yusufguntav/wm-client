@@ -7,24 +7,30 @@ import (
 	"github.com/yusufguntav/wm-client/models"
 )
 
-// SendWp sends a WhatsApp message after preview
-func (c *Client) SendWp(req models.SendWpRequest) error {
-
-	_, err := c.doRequest("POST", "/bulk/wp", req)
-	return err
-}
-
-// PreviewWp generates WhatsApp message preview and returns an ID
-func (c *Client) PreviewWp(req models.PreviewWpRequest) (string, error) {
+func (c *Client) SendWpPreview(req models.PreviewWpRequest) (models.BulkWpPreviewResponse, error) {
 	respBody, err := c.doRequest("POST", "/bulk/preview/wp", req)
 	if err != nil {
-		return "", err
+		return models.BulkWpPreviewResponse{}, fmt.Errorf("send wp preview error: %w, response: %s", err, respBody)
 	}
 
-	var resp models.PreviewWpResponse
+	var previewResp models.APIResponse[models.BulkWpPreviewResponse]
+	if err := json.Unmarshal(respBody, &previewResp); err != nil {
+		return models.BulkWpPreviewResponse{}, fmt.Errorf("unmarshal error: %w", err)
+	}
+
+	return previewResp.Data, nil
+}
+
+func (c *Client) SendWp(req models.SendWpRequest) (models.WpSendResponse, error) {
+	respBody, err := c.doRequest("POST", "/bulk/wp", req)
+	if err != nil {
+		return models.WpSendResponse{}, err
+	}
+
+	var resp models.APIResponse[models.WpSendResponse]
 	if err := json.Unmarshal(respBody, &resp); err != nil {
-		return "", fmt.Errorf("unmarshal error: %w", err)
+		return models.WpSendResponse{}, fmt.Errorf("unmarshal error: %w", err)
 	}
 
-	return resp.ID, nil
+	return resp.Data, nil
 }
