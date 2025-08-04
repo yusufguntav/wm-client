@@ -31,14 +31,10 @@ func (c *Client) Login(payload models.LoginPayload) (models.LoginResponse, error
 		return models.LoginResponse{}, fmt.Errorf("login error: %w, response: %s", err, respBody)
 	}
 
-	var loginResp models.APIResponse[[]models.LoginResponse]
+	var loginResp models.APIResponse[models.LoginResponse]
 	if err := json.Unmarshal(respBody, &loginResp); err != nil {
 		return models.LoginResponse{}, fmt.Errorf("unmarshal error: %w", err)
 	}
 
-	if len(loginResp.Data) == 0 {
-		return models.LoginResponse{}, fmt.Errorf("no login data received")
-	}
-
-	return loginResp.Data[0], nil
+	return loginResp.Data, nil
 }

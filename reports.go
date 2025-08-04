@@ -13,7 +13,7 @@ func (c *Client) GetReports(req models.ReportsRequest) (models.ReportResponse, e
 	params.Add("start_date", req.StartDate)
 	params.Add("end_date", req.EndDate)
 	params.Add("state", req.State)
-	params.Add("source", req.Source)
+	params.Add("source", "1")
 	params.Add("type", req.Type)
 	params.Add("report_id", req.ReportID)
 	params.Add("page", req.Page)
@@ -34,10 +34,10 @@ func (c *Client) GetReports(req models.ReportsRequest) (models.ReportResponse, e
 	return result, nil
 }
 
-func (c *Client) GetReportDetail(reportID, source, state, page string) (models.ReportDetailResponse, error) {
+func (c *Client) GetReportDetail(reportID, state, page string) (models.ReportDetailResponse, error) {
 	params := url.Values{}
 	params.Add("report_id", reportID)
-	params.Add("source", source)
+	params.Add("source", "1")
 	params.Add("state", state)
 	params.Add("page", page)
 

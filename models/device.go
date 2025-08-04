@@ -26,3 +26,8 @@ type DeviceResponse struct {
 	UserName       string `json:"user_name"`
 	LogoutDate     string `json:"logout_date"`
 }
+
+type ConnectCodeResponse struct {
+	Code  string `json:"code"`
+	RegID string `json:"regId"`
+}
