@@ -18,17 +18,29 @@ type Client struct {
 	httpClient *http.Client
 }
 
-func NewClient(loginInfo models.LoginVerifyCodePayload) *Client {
+type NewClientArgs struct {
+	LoginInfo models.LoginVerifyCodePayload
+	BaseURL   string
+	AutoLogin bool
+}
+
+func NewClient(args NewClientArgs) *Client {
+	baseURL := args.BaseURL
+	if baseURL == "" {
+		baseURL = defaultBaseURL
+	}
 
 	client := &Client{
-		BaseURL:    defaultBaseURL,
-		LoginInfo:  loginInfo,
+		BaseURL:    baseURL,
+		LoginInfo:  args.LoginInfo,
 		httpClient: &http.Client{Timeout: 10 * time.Second},
 	}
 
-	err := client.RefreshToken()
-	if err != nil {
-		log.Printf("Failed to refresh token: %v", err)
+	if args.AutoLogin {
+		err := client.RefreshToken()
+		if err != nil {
+			log.Printf("Failed to refresh token: %v", err)
+		}
 	}
 
 	return client
