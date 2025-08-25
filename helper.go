@@ -20,7 +20,8 @@ import (
 
 func (c *Client) doRequest(method, endpoint string, payload interface{}) ([]byte, error) {
 	respBody, status, err := c.executeRequest(method, endpoint, payload)
-	if err != nil {
+
+	if err != nil && status != http.StatusForbidden {
 		return nil, err
 	}
 
