@@ -112,6 +112,35 @@ func (c *Client) executeRequest(method, endpoint string, payload interface{}) ([
 	return respBody, resp.StatusCode, nil
 }
 
+func (c *Client) doFormRequest(method, endpoint string, form *multipart.Writer, buf *bytes.Buffer) ([]byte, error) {
+	req, err := http.NewRequest(method, fmt.Sprintf("%s%s", c.BaseURL, endpoint), buf)
+	if err != nil {
+		return nil, fmt.Errorf("request creation error: %w", err)
+	}
+
+	req.Header.Set("Content-Type", form.FormDataContentType())
+	if c.Token != "" {
+		req.Header.Set("Authorization", "Bearer "+c.Token)
+	}
+
+	resp, err := c.httpClient.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("request execution error: %w", err)
+	}
+	defer resp.Body.Close()
+
+	respBody, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, fmt.Errorf("read response error: %w", err)
+	}
+
+	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+		return respBody, fmt.Errorf("unexpected status code: %d\nResponse:%s", resp.StatusCode, respBody)
+	}
+
+	return respBody, nil
+}
+
 func (c *Client) RefreshToken() error {
 	resp, err := c.LoginVerifyCode(c.LoginInfo)
 
